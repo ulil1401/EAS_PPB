@@ -16,10 +16,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CoffeeBlissTheme {
-                CoffeeBlissNavGraph(
-                    application = application,
-                    sessionManager = application.sessionManager
-                )
+                CoffeeBlissNavGraph(application = application)
             }
         }
     }

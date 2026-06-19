@@ -11,6 +11,6 @@ data class Member(
     val email: String,
     val phone: String,
     val memberNumber: String,
-    val status: String = "Active",
-    val totalPoints: Int = 0
+    val points: Int = 0,
+    val photoPath: String? = null
 )

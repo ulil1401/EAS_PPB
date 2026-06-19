@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.coffeebliss.app-mergeDebugResources-54:/values-pt-rPT/values-pt-rPT.xml",
+            "outputFile": "com.coffeebliss.app-mergeDebugResources-56:/values-pt-rPT/values-pt-rPT.xml",
             "map": [
                 {
                     "source": "C:\\Users\\user\\.gradle\\caches\\transforms-3\\ba3075c54689a4c12297325ebd3638b4\\transformed\\foundation-release\\res\\values-pt-rPT\\values-pt-rPT.xml",

@@ -4,9 +4,11 @@ import com.coffeebliss.app.data.dao.MemberDao
 import com.coffeebliss.app.data.dao.RedemptionDao
 import com.coffeebliss.app.data.dao.TransactionDao
 import com.coffeebliss.app.data.model.Member
+import com.coffeebliss.app.data.model.RedeemResult
 import com.coffeebliss.app.data.model.Redemption
 import com.coffeebliss.app.data.model.Reward
 import com.coffeebliss.app.data.model.Transaction
+import com.coffeebliss.app.data.model.TransactionResult
 import com.coffeebliss.app.util.PointCalculator
 import kotlinx.coroutines.flow.Flow
 
@@ -16,18 +18,29 @@ class CoffeeBlissRepository(
     private val redemptionDao: RedemptionDao
 ) {
 
-    suspend fun registerMember(name: String, email: String, phone: String): Result<Member> {
+    fun getAllMembers(): Flow<List<Member>> = memberDao.getAllMembers()
+
+    fun getMemberCount(): Flow<Int> = memberDao.getMemberCount()
+
+    fun getMember(memberId: Long): Flow<Member?> = memberDao.getMemberById(memberId)
+
+    fun getTransactions(memberId: Long): Flow<List<Transaction>> =
+        transactionDao.getTransactionsByMember(memberId)
+
+    fun getRedemptions(memberId: Long): Flow<List<Redemption>> =
+        redemptionDao.getRedemptionsByMember(memberId)
+
+    suspend fun addMember(name: String, email: String, phone: String): Result<Member> {
         if (name.isBlank() || email.isBlank() || phone.isBlank()) {
             return Result.failure(IllegalArgumentException("Semua field wajib diisi"))
         }
 
-        val existing = memberDao.getMemberByEmail(email.trim())
-        if (existing != null) {
+        if (memberDao.getMemberByEmail(email.trim()) != null) {
             return Result.failure(IllegalArgumentException("Email sudah terdaftar"))
         }
 
-        val memberCount = memberDao.getMemberCount()
-        val memberNumber = "CB${String.format("%04d", memberCount + 1)}"
+        val count = memberDao.getMemberCountOnce()
+        val memberNumber = "MBR${String.format("%05d", count + 1)}"
 
         val member = Member(
             name = name.trim(),
@@ -40,24 +53,35 @@ class CoffeeBlissRepository(
         return Result.success(member.copy(id = id))
     }
 
-    suspend fun login(email: String, phone: String): Result<Member> {
-        val member = memberDao.login(email.trim(), phone.trim())
-        return if (member != null) {
-            Result.success(member)
-        } else {
-            Result.failure(IllegalArgumentException("Email atau nomor HP tidak ditemukan"))
+    suspend fun updateMember(
+        memberId: Long,
+        name: String,
+        email: String,
+        phone: String,
+        photoPath: String?
+    ): Result<Member> {
+        if (name.isBlank() || email.isBlank() || phone.isBlank()) {
+            return Result.failure(IllegalArgumentException("Semua field wajib diisi"))
         }
+
+        val member = memberDao.getMemberByIdOnce(memberId)
+            ?: return Result.failure(IllegalArgumentException("Member tidak ditemukan"))
+
+        if (memberDao.getMemberByEmailExcluding(email.trim(), memberId) != null) {
+            return Result.failure(IllegalArgumentException("Email sudah digunakan member lain"))
+        }
+
+        val updated = member.copy(
+            name = name.trim(),
+            email = email.trim(),
+            phone = phone.trim(),
+            photoPath = photoPath
+        )
+        memberDao.update(updated)
+        return Result.success(updated)
     }
 
-    fun getMember(memberId: Long): Flow<Member?> = memberDao.getMemberById(memberId)
-
-    fun getTransactions(memberId: Long): Flow<List<Transaction>> =
-        transactionDao.getTransactionsByMember(memberId)
-
-    fun getRedemptions(memberId: Long): Flow<List<Redemption>> =
-        redemptionDao.getRedemptionsByMember(memberId)
-
-    suspend fun addTransaction(memberId: Long, amount: Long): Result<Transaction> {
+    suspend fun addTransaction(memberId: Long, amount: Long): Result<TransactionResult> {
         if (amount <= 0) {
             return Result.failure(IllegalArgumentException("Nominal harus lebih dari 0"))
         }
@@ -66,6 +90,7 @@ class CoffeeBlissRepository(
             ?: return Result.failure(IllegalArgumentException("Member tidak ditemukan"))
 
         val pointsEarned = PointCalculator.calculatePoints(amount)
+        val newTotalPoints = member.points + pointsEarned
         val transaction = Transaction(
             memberId = memberId,
             date = System.currentTimeMillis(),
@@ -74,21 +99,28 @@ class CoffeeBlissRepository(
         )
 
         transactionDao.insert(transaction)
-        memberDao.update(member.copy(totalPoints = member.totalPoints + pointsEarned))
+        memberDao.update(member.copy(points = newTotalPoints))
 
-        return Result.success(transaction)
+        return Result.success(
+            TransactionResult(
+                transaction = transaction,
+                pointsEarned = pointsEarned,
+                newTotalPoints = newTotalPoints
+            )
+        )
     }
 
-    suspend fun redeemReward(memberId: Long, reward: Reward): Result<Redemption> {
+    suspend fun redeemReward(memberId: Long, reward: Reward): Result<RedeemResult> {
         val member = memberDao.getMemberByIdOnce(memberId)
             ?: return Result.failure(IllegalArgumentException("Member tidak ditemukan"))
 
-        if (member.totalPoints < reward.pointsRequired) {
+        if (member.points < reward.pointsRequired) {
             return Result.failure(
                 IllegalArgumentException("Poin tidak cukup. Butuh ${reward.pointsRequired} poin")
             )
         }
 
+        val remainingPoints = member.points - reward.pointsRequired
         val redemption = Redemption(
             memberId = memberId,
             date = System.currentTimeMillis(),
@@ -97,10 +129,15 @@ class CoffeeBlissRepository(
         )
 
         redemptionDao.insert(redemption)
-        memberDao.update(
-            member.copy(totalPoints = member.totalPoints - reward.pointsRequired)
-        )
+        memberDao.update(member.copy(points = remainingPoints))
 
-        return Result.success(redemption)
+        return Result.success(
+            RedeemResult(
+                redemption = redemption,
+                rewardName = reward.name,
+                pointsUsed = reward.pointsRequired,
+                remainingPoints = remainingPoints
+            )
+        )
     }
 }

@@ -1,57 +1,35 @@
 package com.coffeebliss.app.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val CoffeeBrown = Color(0xFF6F4E37)
-private val CoffeeBrownDark = Color(0xFF4A3222)
-private val CoffeeCream = Color(0xFFFFF8F0)
-private val CoffeeGold = Color(0xFFD4A574)
-private val CoffeeGreen = Color(0xFF2E7D32)
+val CoffeeGreen = Color(0xFF1B5E20)
+val CoffeeGreenDark = Color(0xFF0D3B12)
+val CoffeeGreenLight = Color(0xFF4CAF50)
+val CoffeeBackground = Color(0xFFF5F5F5)
+val CoffeeCardDark = Color(0xFF2E2E2E)
 
 private val LightColorScheme = lightColorScheme(
-    primary = CoffeeBrown,
+    primary = CoffeeGreen,
     onPrimary = Color.White,
-    primaryContainer = CoffeeGold,
-    onPrimaryContainer = CoffeeBrownDark,
-    secondary = CoffeeGold,
-    onSecondary = CoffeeBrownDark,
-    background = CoffeeCream,
-    onBackground = CoffeeBrownDark,
+    primaryContainer = CoffeeGreenLight,
+    onPrimaryContainer = Color.White,
+    secondary = CoffeeGreenLight,
+    onSecondary = Color.White,
+    background = CoffeeBackground,
+    onBackground = Color(0xFF212121),
     surface = Color.White,
-    onSurface = CoffeeBrownDark,
-    tertiary = CoffeeGreen,
-    onTertiary = Color.White
-)
-
-private val DarkColorScheme = darkColorScheme(
-    primary = CoffeeGold,
-    onPrimary = CoffeeBrownDark,
-    primaryContainer = CoffeeBrown,
-    onPrimaryContainer = CoffeeCream,
-    secondary = CoffeeGold,
-    onSecondary = CoffeeBrownDark,
-    background = Color(0xFF1A120B),
-    onBackground = CoffeeCream,
-    surface = Color(0xFF2A1F17),
-    onSurface = CoffeeCream,
-    tertiary = CoffeeGreen,
+    onSurface = Color(0xFF212121),
+    tertiary = CoffeeGreenDark,
     onTertiary = Color.White
 )
 
 @Composable
-fun CoffeeBlissTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
-) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-
+fun CoffeeBlissTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = LightColorScheme,
         content = content
     )
 }

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.coffeebliss.app-mergeDebugResources-54:/values-in/values-in.xml",
+            "outputFile": "com.coffeebliss.app-mergeDebugResources-56:/values-in/values-in.xml",
             "map": [
                 {
                     "source": "C:\\Users\\user\\.gradle\\caches\\transforms-3\\74f90e2c47abd4e69fb1234039c3dd69\\transformed\\material3-release\\res\\values-in\\values-in.xml",

@@ -2,6 +2,7 @@ package com.coffeebliss.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.coffeebliss.app.data.model.RedeemResult
 import com.coffeebliss.app.data.model.Reward
 import com.coffeebliss.app.data.model.RewardCatalog
 import com.coffeebliss.app.data.repository.CoffeeBlissRepository
@@ -14,8 +15,10 @@ import kotlinx.coroutines.launch
 data class RedeemUiState(
     val rewards: List<Reward> = RewardCatalog.rewards,
     val isLoading: Boolean = false,
-    val message: String? = null,
-    val isError: Boolean = false
+    val errorMessage: String? = null,
+    val pendingReward: Reward? = null,
+    val showConfirmDialog: Boolean = false,
+    val successResult: RedeemResult? = null
 )
 
 class RedeemViewModel(
@@ -25,16 +28,27 @@ class RedeemViewModel(
     private val _uiState = MutableStateFlow(RedeemUiState())
     val uiState: StateFlow<RedeemUiState> = _uiState.asStateFlow()
 
-    fun redeem(memberId: Long, reward: Reward) {
+    fun requestRedeem(reward: Reward) {
+        _uiState.update { it.copy(pendingReward = reward, showConfirmDialog = true) }
+    }
+
+    fun dismissConfirmDialog() {
+        _uiState.update { it.copy(showConfirmDialog = false, pendingReward = null) }
+    }
+
+    fun confirmRedeem(memberId: Long) {
+        val reward = _uiState.value.pendingReward ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, message = null) }
+            _uiState.update {
+                it.copy(isLoading = true, showConfirmDialog = false, errorMessage = null)
+            }
             repository.redeemReward(memberId, reward)
-                .onSuccess {
+                .onSuccess { result ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            message = "${reward.name} berhasil ditukar!",
-                            isError = false
+                            pendingReward = null,
+                            successResult = result
                         )
                     }
                 }
@@ -42,15 +56,19 @@ class RedeemViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            message = error.message,
-                            isError = true
+                            pendingReward = null,
+                            errorMessage = error.message
                         )
                     }
                 }
         }
     }
 
-    fun clearMessage() {
-        _uiState.update { it.copy(message = null) }
+    fun dismissSuccessDialog() {
+        _uiState.update { it.copy(successResult = null) }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }

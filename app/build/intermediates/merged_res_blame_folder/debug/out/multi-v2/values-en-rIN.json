@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.coffeebliss.app-mergeDebugResources-54:/values-en-rIN/values-en-rIN.xml",
+            "outputFile": "com.coffeebliss.app-mergeDebugResources-56:/values-en-rIN/values-en-rIN.xml",
             "map": [
                 {
                     "source": "C:\\Users\\user\\.gradle\\caches\\transforms-3\\ba3075c54689a4c12297325ebd3638b4\\transformed\\foundation-release\\res\\values-en-rIN\\values-en-rIN.xml",

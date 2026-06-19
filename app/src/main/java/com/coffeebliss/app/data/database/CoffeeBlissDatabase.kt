@@ -11,7 +11,7 @@ import com.coffeebliss.app.data.model.Transaction
 
 @Database(
     entities = [Member::class, Transaction::class, Redemption::class],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class CoffeeBlissDatabase : RoomDatabase() {
